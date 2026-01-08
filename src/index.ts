@@ -4,22 +4,71 @@ import { McpAgent } from "agents/mcp";
 import { z } from "zod";
 import { GoogleHandler } from "./google-handler";
 
-// Portuguese mainland surf spots - prioritizing Lisbon region
+// Portuguese mainland surf spots - comprehensive coverage from north to south
 const PORTUGAL_SPOTS: Record<string, string> = {
-	// Lisbon Region
-	"Costa da Caparica": "5842041f4e65fad6a7708e65",
-	"Carcavelos": "5842041f4e65fad6a7708bc0",
-	"Praia do Guincho": "5842041f4e65fad6a7708e64",
-	// Ericeira Region (World Surf Reserve)
+	// NORTE - Porto & Northern Portugal
+	"Moledo": "5842041f4e65fad6a7708e56",
+	"Afife": "5842041f4e65fad6a7708e58",
+	"Viana do Castelo": "5842041f4e65fad6a7708e57",
+	"Ofir": "5842041f4e65fad6a7708e54",
+	"Apulia": "5842041f4e65fad6a7708e53",
+	"Póvoa de Varzim": "5842041f4e65fad6a7708e52",
+	"Vila do Conde": "640b9c3fe920302841e179f0",
+	"Mindelo": "5842041f4e65fad6a7708e51",
+	"Furadouro": "640b9c7b8284fedd06b15f77",
+	"Espinho": "5842041f4e65fad6a7708e5c",
+	"Miramar": "5842041f4e65fad6a7708e5a",
+	"Matosinhos": "5842041f4e65fad6a7708e59",
+	"Leca": "5842041f4e65fad6a7708e5b",
+	"Luz (Porto)": "640b9c33de81d521a10df5e3",
+	
+	// ERICEIRA REGION - World Surf Reserve
+	"Coxos": "5842041f4e65fad6a7708bc4",
 	"Ribeira D'Ilhas": "5842041f4e65fad6a7708bc2",
-	"São Julião": "640b9cda4878ebfad81e2b72",
+	"Reef": "5842041f4e65fad6a7708bc1",
 	"Cave": "5d702a08b8be350001890108",
-	// Peniche Region
+	"Pedra Branca": "584204204e65fad6a77096ae",
+	"São Julião": "640b9cda4878ebfad81e2b72",
+	"Foz do Lizandro": "5842041f4e65fad6a7708bbd",
+	"Praia do Sul": "5fb2c2da7057d993d9d2caa3",
+	
+	// SINTRA & TORRES VEDRAS
+	"Praia do Abano": "640b9d3cde81d5160a0e323b",
+	"Praia Grande": "5842041f4e65fad6a7708e62",
+	"Santa Cruz": "584204204e65fad6a77099d9",
+	
+	// LISBON COAST
+	"Praia do Guincho": "5842041f4e65fad6a7708e64",
+	"Carcavelos": "5842041f4e65fad6a7708bc0",
+	"Costa da Caparica": "5842041f4e65fad6a7708e65",
+	
+	// PENICHE REGION
+	"Consolação": "5a53f6e5a8b6a9001b017369",
 	"Supertubos": "5842041f4e65fad6a7708bc3",
+	"Lagide": "58bdf3a70cec4200133464f2",
 	"Baleal": "5842041f4e65fad6a7708bc6",
 	"Cantinho da Baía": "5a1c9e91cbecc0001bb480c8",
-	// Nazaré (Big Wave)
+	"Meio da Baía": "63a4374bb5c53b335b3eada7",
+	
+	// NAZARÉ
 	"Nazaré": "58bdfa7882d034001252e3d8",
+	
+	// ALENTEJO
+	"Sines": "5842041f4e65fad6a7708e77",
+	
+	// ALGARVE - West Coast
+	"Monte Clérigo": "63224d4939d5dd71bae0e2f3",
+	"Arrifana": "5842041f4e65fad6a7708e7e",
+	"Amoreira": "60520f49114762ed8d525628",
+	"Carrapateira": "5842041f4e65fad6a7708e7c",
+	"Praia do Amado": "5a1c987c0f87fe001a0c70d9",
+	"Praia da Cordoama": "602d722abe000ffc20f4dd77",
+	"Zavial": "602d736b55e103b63d891444",
+	"Tonel": "5842041f4e65fad6a7708e80",
+	
+	// ALGARVE - South Coast
+	"Meia Praia": "5842041f4e65fad6a7708e84",
+	"Praia de Faro": "640b9db0606c455f12f497b3",
 };
 
 // Helper functions
@@ -55,9 +104,9 @@ export class MyMCP extends McpAgent<Env, Record<string, never>, Props> {
 		// Get complete surf report (all data at once)
 		this.server.tool(
 			"get_complete_surf_report",
-			"PRIMARY TOOL: Use this for ANY surf-related questions. Returns comprehensive Portuguese surf report with: current conditions for all 10 spots, detailed swell breakdown (height/period/direction/power for each swell component), 8-hour forecast for each spot, expert forecaster observations with AM/PM specific timing advice, sunrise/sunset times, and tide schedule. This returns EVERYTHING in one call.",
+			"PRIMARY TOOL: Use this for ANY surf-related questions. Returns comprehensive Portuguese surf report with: current conditions for all 47 spots, detailed swell breakdown (height/period/direction/power for each swell component), 8-hour forecast for each spot, expert forecaster observations with AM/PM specific timing advice, sunrise/sunset times, and tide schedule. This returns EVERYTHING in one call.",
 			{
-				spots: z.array(z.string()).optional().describe("Optional list of spot names, e.g., ['Carcavelos', 'Supertubos']"),
+				spots: z.array(z.string()).optional().describe("Optional list of spot names, e.g., ['Carcavelos', 'Supertubos', 'Nazaré']"),
 			},
 			async ({ spots }) => {
 				// Fetch forecaster notes with AM/PM details (using Carcavelos as reference)
@@ -437,7 +486,7 @@ export class MyMCP extends McpAgent<Env, Record<string, never>, Props> {
 				}
 			}
 
-			const ranked = results.sort((a, b) => b.score - a.score).slice(0, 3);
+			const ranked = results.sort((a, b) => b.score - a.score).slice(0, 5);
 			return { content: [{ type: "text", text: JSON.stringify(ranked, null, 2) }] };
 		});
 	}
