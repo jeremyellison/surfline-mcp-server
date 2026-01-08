@@ -26,7 +26,7 @@ app.get("/authorize", async (c) => {
 	return renderApprovalDialog(c.req.raw, {
 		client: await c.env.OAUTH_PROVIDER.lookupClient(clientId),
 		server: {
-			description: "Get real-time surf forecasts for Santa Cruz beaches. Uses Google for authentication.",
+			description: "Get real-time surf forecasts for Portugal beaches. Uses Google for authentication.",
 			logo: "https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png",
 			name: "Santa Cruz Surf Forecast",
 		},

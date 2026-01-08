@@ -16,13 +16,59 @@ const PORTUGAL_SPOTS: Record<string, string> = {
 	"Vila do Conde": "640b9c3fe920302841e179f0",
 	"Mindelo": "5842041f4e65fad6a7708e51",
 	"Furadouro": "640b9c7b8284fedd06b15f77",
+	"Esmoriz": "5842041f4e65fad6a7708e5d",
+	"Cortegaça": "5842041f4e65fad6a7708e5e",
 	"Espinho": "5842041f4e65fad6a7708e5c",
 	"Miramar": "5842041f4e65fad6a7708e5a",
 	"Matosinhos": "5842041f4e65fad6a7708e59",
 	"Leca": "5842041f4e65fad6a7708e5b",
 	"Luz (Porto)": "640b9c33de81d521a10df5e3",
-	
+
+	// CENTRAL COAST - Aveiro / Figueira / Leiria
+	"São Jacinto": "602d38a3ba769e5822a8b666",
+	"Torreira": "640b9c7545190518f6e0601e",
+	"Praia da Barra": "5842041f4e65fad6a7708e5f",
+	"Costa Nova": "60185768b984ad754bcb9250",
+	"Praia da Vagueira": "640b9c998284fe2030b16609",
+	"Praia de Mira": "5842041f4e65fad6a7708e60",
+	"Praia da Tocha": "640b9c87e920309ad4e18a89",
+	"Figueira da Foz": "584204204e65fad6a770998e",
+	"Buarcos": "5842041f4e65fad6a7708e56",
+	"Cabedelo": "5842041f4e65fad6a7708bc5",
+	"Leirosa": "640b9c6fe920305149e184e7",
+	"São Pedro do Moel": "640b9c69e9203043bfe18370",
+	"Praia Velha": "640b9c8d9b6fab9d66304989",
+	"Praia das Paredes": "640b9c938284fe135bb16496",
+	"Pedra do Ouro": "631a41122ee96323047ebb32",
+
+	// NAZARÉ AREA
+	"Nazaré": "58bdfa7882d034001252e3d8",
+
+	// PENICHE REGION
+	"Foz do Arelho": "60185298bf006fc3a6a23cec",
+	"Belgas": "5dea852e909631442a25348a",
+	"Almagreira": "5dea8356fe21a44513cecc3f",
+	"Lagide": "58bdf3a70cec4200133464f2",
+	"Baleal": "5842041f4e65fad6a7708bc6",
+	"Cantinho da Baía": "5a1c9e91cbecc0001bb480c8",
+	"Meio da Baía": "63a4374bb5c53b335b3eada7",
+	"Molhe Leste": "640b9cb14878ebb2521e21fe",
+	"Supertubos": "5842041f4e65fad6a7708bc3",
+	"Consolação": "5a53f6e5a8b6a9001b017369",
+	"Cerro": "603419021b17499cb1135506",
+
+	// TORRES VEDRAS & SINTRA (Oeste)
+	"Praia da Areia Branca": "640b9cab8284fefad6b169e4",
+	"Praia das Amoeiras": "640b9cd4606c45f75af464c9",
+	"Santa Cruz": "584204204e65fad6a77099d9",
+	"Praia Formosa": "640b9cb745190568fce06ecf",
+	"Praia dos Frades": "640b9ccfde81d5e37c0e19a7",
+	"Praia Azul": "584204204e65fad6a77096b9",
+	"Praia Grande": "5842041f4e65fad6a7708e62",
+	"Praia do Abano": "640b9d3cde81d5160a0e323b",
+
 	// ERICEIRA REGION - World Surf Reserve
+	"São Lourenço": "5842041f4e65fad6a7708bcb",
 	"Coxos": "5842041f4e65fad6a7708bc4",
 	"Ribeira D'Ilhas": "5842041f4e65fad6a7708bc2",
 	"Reef": "5842041f4e65fad6a7708bc1",
@@ -31,44 +77,38 @@ const PORTUGAL_SPOTS: Record<string, string> = {
 	"São Julião": "640b9cda4878ebfad81e2b72",
 	"Foz do Lizandro": "5842041f4e65fad6a7708bbd",
 	"Praia do Sul": "5fb2c2da7057d993d9d2caa3",
-	
-	// SINTRA & TORRES VEDRAS
-	"Praia do Abano": "640b9d3cde81d5160a0e323b",
-	"Praia Grande": "5842041f4e65fad6a7708e62",
-	"Santa Cruz": "584204204e65fad6a77099d9",
-	
+
 	// LISBON COAST
 	"Praia do Guincho": "5842041f4e65fad6a7708e64",
 	"Carcavelos": "5842041f4e65fad6a7708bc0",
 	"Costa da Caparica": "5842041f4e65fad6a7708e65",
-	
-	// PENICHE REGION
-	"Consolação": "5a53f6e5a8b6a9001b017369",
-	"Supertubos": "5842041f4e65fad6a7708bc3",
-	"Lagide": "58bdf3a70cec4200133464f2",
-	"Baleal": "5842041f4e65fad6a7708bc6",
-	"Cantinho da Baía": "5a1c9e91cbecc0001bb480c8",
-	"Meio da Baía": "63a4374bb5c53b335b3eada7",
-	
-	// NAZARÉ
-	"Nazaré": "58bdfa7882d034001252e3d8",
-	
+
 	// ALENTEJO
 	"Sines": "5842041f4e65fad6a7708e77",
-	
-	// ALGARVE - West Coast
+	"São Torpes": "5a1c9ccecbecc0001bb480c7",
+	"Odeceixe": "5842041f4e65fad6a7708e7a",
+
+	// ALGARVE - West Coast (Costa Vicentina)
 	"Monte Clérigo": "63224d4939d5dd71bae0e2f3",
-	"Arrifana": "5842041f4e65fad6a7708e7e",
 	"Amoreira": "60520f49114762ed8d525628",
-	"Carrapateira": "5842041f4e65fad6a7708e7c",
+	"Arrifana": "5842041f4e65fad6a7708e7e",
+	"Vale Figueiras": "5842041f4e65fad6a7708e7d",
 	"Praia do Amado": "5a1c987c0f87fe001a0c70d9",
+	"Carrapateira": "5842041f4e65fad6a7708e7c",
 	"Praia da Cordoama": "602d722abe000ffc20f4dd77",
-	"Zavial": "602d736b55e103b63d891444",
+	"Praia Castelejo": "602d7420ddb045732840dbab",
+	"Beliche": "602d75185a026ea81cf2c70e",
 	"Tonel": "5842041f4e65fad6a7708e80",
-	
+	"Mareta": "5842041f4e65fad6a7708e7f",
+
 	// ALGARVE - South Coast
+	"Zavial": "602d736b55e103b63d891444",
+	"Praia da Luz": "5842041f4e65fad6a7708e81",
 	"Meia Praia": "5842041f4e65fad6a7708e84",
+	"Praia da Rocha": "5842041f4e65fad6a7708e83",
+	"Falesia": "5842041f4e65fad6a7708e85",
 	"Praia de Faro": "640b9db0606c455f12f497b3",
+	"Ilha do Farol": "5842041f4e65fad6a7708e82",
 };
 
 // Helper functions

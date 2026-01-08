@@ -2,7 +2,7 @@
 	"name": "surfline-mcp-server",
 	"version": "1.0.0",
 	"private": true,
-	"description": "MCP server providing comprehensive surf forecasts for Santa Cruz and beyond using Surfline's API",
+	"description": "MCP server providing comprehensive surf forecasts for Mainland Portugal and beyond using Surfline's API",
 	"scripts": {
 		"deploy": "wrangler deploy",
 		"dev": "wrangler dev",
