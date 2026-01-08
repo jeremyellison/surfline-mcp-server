@@ -25,26 +25,6 @@ A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that p
 * Works seamlessly with claude.ai web and mobile
 * No Surfline API keys required (uses public endpoints)
 
-## Portuguese Surf Spots Covered
-
-### **Lisbon Region**
-* **Costa da Caparica** - Long stretch of beach breaks
-* **Carcavelos** - Popular beach break near Lisbon
-* **Praia do Guincho** - Exposed beach with consistent swell
-
-### **Ericeira Region (Europe's First World Surf Reserve)**
-* **Ribeira D'Ilhas** - World-class right point break
-* **São Julião** - Beach break with powerful waves
-* **Cave** - Heavy reef break for experienced surfers
-
-### **Peniche Region**
-* **Supertubos** - World Championship Tour venue, powerful barrels
-* **Baleal** - Consistent beach breaks on both sides
-* **Cantinho da Baía** - Sheltered bay spot
-
-### **Nazaré**
-* **Nazaré** - Legendary big wave spot (Praia do Norte)
-
 ## Quick Start
 
 ### Prerequisites
