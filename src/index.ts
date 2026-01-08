@@ -4,19 +4,22 @@ import { McpAgent } from "agents/mcp";
 import { z } from "zod";
 import { GoogleHandler } from "./google-handler";
 
-// Santa Cruz surf spots
-const SANTA_CRUZ_SPOTS: Record<string, string> = {
-	Davenport: "5842041f4e65fad6a7708983",
-	"Waddell Creek": "5842041f4e65fad6a7708980",
-	"Four Mile": "5842041f4e65fad6a7708981",
-	"Three Mile": "5e618490277db7f194f080fa",
-	"Steamer Lane": "5842041f4e65fad6a7708805",
-	Cowells: "5842041f4e65fad6a7708806",
-	"26th Ave": "5842041f4e65fad6a770898a",
-	"Pleasure Point": "5842041f4e65fad6a7708807",
-	"Jack's": "5842041f4e65fad6a770880b",
-	"The Hook": "584204204e65fad6a7709996",
-	Capitola: "5842041f4e65fad6a7708ddf",
+// Portuguese mainland surf spots - prioritizing Lisbon region
+const PORTUGAL_SPOTS: Record<string, string> = {
+	// Lisbon Region
+	"Costa da Caparica": "5842041f4e65fad6a7708e65",
+	"Carcavelos": "5842041f4e65fad6a7708bc0",
+	"Praia do Guincho": "5842041f4e65fad6a7708e64",
+	// Ericeira Region (World Surf Reserve)
+	"Ribeira D'Ilhas": "5842041f4e65fad6a7708bc2",
+	"São Julião": "640b9cda4878ebfad81e2b72",
+	"Cave": "5d702a08b8be350001890108",
+	// Peniche Region
+	"Supertubos": "5842041f4e65fad6a7708bc3",
+	"Baleal": "5842041f4e65fad6a7708bc6",
+	"Cantinho da Baía": "5a1c9e91cbecc0001bb480c8",
+	// Nazaré (Big Wave)
+	"Nazaré": "58bdfa7882d034001252e3d8",
 };
 
 // Helper functions
@@ -44,7 +47,7 @@ type Props = {
 
 export class MyMCP extends McpAgent<Env, Record<string, never>, Props> {
 	server = new McpServer({
-		name: "Santa Cruz Surf Forecast",
+		name: "Portugal Surf Forecast",
 		version: "1.0.0",
 	});
 
@@ -52,16 +55,16 @@ export class MyMCP extends McpAgent<Env, Record<string, never>, Props> {
 		// Get complete surf report (all data at once)
 		this.server.tool(
 			"get_complete_surf_report",
-			"PRIMARY TOOL: Use this for ANY surf-related questions. Returns comprehensive Santa Cruz surf report with: current conditions for all 11 spots, detailed swell breakdown (height/period/direction/power for each swell component), 8-hour forecast for each spot, expert forecaster observations with AM/PM specific timing advice, sunrise/sunset times, and tide schedule. This returns EVERYTHING in one call.",
+			"PRIMARY TOOL: Use this for ANY surf-related questions. Returns comprehensive Portuguese surf report with: current conditions for all 10 spots, detailed swell breakdown (height/period/direction/power for each swell component), 8-hour forecast for each spot, expert forecaster observations with AM/PM specific timing advice, sunrise/sunset times, and tide schedule. This returns EVERYTHING in one call.",
 			{
-				spots: z.array(z.string()).optional().describe("Optional list of spot names, e.g., ['Waddell Creek', 'Steamer Lane']"),
+				spots: z.array(z.string()).optional().describe("Optional list of spot names, e.g., ['Carcavelos', 'Supertubos']"),
 			},
 			async ({ spots }) => {
-				// Fetch forecaster notes with AM/PM details
-				const steamerLaneId = "5842041f4e65fad6a7708805";
+				// Fetch forecaster notes with AM/PM details (using Carcavelos as reference)
+				const carcavelosId = "5842041f4e65fad6a7708bc0";
 				let forecasterNotes = [];
 				try {
-					const data = await fetchSurfData(steamerLaneId, "conditions");
+					const data = await fetchSurfData(carcavelosId, "conditions");
 					const conditions = data?.data?.conditions || [];
 					forecasterNotes = conditions.slice(0, 3).map((condition: any) => ({
 						date: condition.forecastDay,
@@ -92,7 +95,7 @@ export class MyMCP extends McpAgent<Env, Record<string, never>, Props> {
 				// Fetch tide info
 				let tideInfo = {};
 				try {
-					const data = await fetchSurfData(steamerLaneId, "tides");
+					const data = await fetchSurfData(carcavelosId, "tides");
 					const tides = data?.data?.tides || [];
 					const tideLoc = data?.associated?.tideLocation || {};
 					const now = Date.now() / 1000;
@@ -101,7 +104,7 @@ export class MyMCP extends McpAgent<Env, Record<string, never>, Props> {
 						.slice(0, 6)
 						.map((t: any) => ({
 							time: new Date(t.timestamp * 1000).toLocaleString('en-US', {
-								timeZone: 'America/Los_Angeles',
+								timeZone: 'Europe/Lisbon',
 								month: 'short',
 								day: 'numeric',
 								hour: 'numeric',
@@ -112,7 +115,7 @@ export class MyMCP extends McpAgent<Env, Record<string, never>, Props> {
 							height: t.height,
 						}));
 					tideInfo = {
-						location: tideLoc.name || "Santa Cruz",
+						location: tideLoc.name || "Lisbon",
 						upcomingTides,
 					};
 				} catch (error) {
@@ -122,15 +125,15 @@ export class MyMCP extends McpAgent<Env, Record<string, never>, Props> {
 				// Fetch sunrise/sunset times
 				let sunlightTimes = {};
 				try {
-					const data = await fetchSurfData(steamerLaneId, "weather");
+					const data = await fetchSurfData(carcavelosId, "weather");
 					const sunlight = data?.data?.sunlightTimes?.[0];
 					if (sunlight) {
-						// Convert to local Pacific time string manually
+						// Convert to local Lisbon time string manually
 						const formatLocalTime = (timestamp: number) => {
 							const date = new Date(timestamp * 1000);
-							// Format in Pacific timezone
+							// Format in Lisbon timezone
 							return date.toLocaleTimeString('en-US', {
-								timeZone: 'America/Los_Angeles',
+								timeZone: 'Europe/Lisbon',
 								hour: 'numeric',
 								minute: '2-digit',
 								hour12: true
@@ -149,11 +152,11 @@ export class MyMCP extends McpAgent<Env, Record<string, never>, Props> {
 				}
 
 				// Fetch spot conditions with FULL details
-				const spotsToFetch = spots && spots.length > 0 ? spots : Object.keys(SANTA_CRUZ_SPOTS);
+				const spotsToFetch = spots && spots.length > 0 ? spots : Object.keys(PORTUGAL_SPOTS);
 				const spotConditions = [];
 
 				for (const spotName of spotsToFetch) {
-					const spotId = SANTA_CRUZ_SPOTS[spotName];
+					const spotId = PORTUGAL_SPOTS[spotName];
 					if (!spotId) {
 						spotConditions.push({ spot: spotName, error: "Unknown spot" });
 						continue;
@@ -184,7 +187,7 @@ export class MyMCP extends McpAgent<Env, Record<string, never>, Props> {
 							if (waves[i].timestamp > now) {
 								hourlyForecast.push({
 									time: new Date(waves[i].timestamp * 1000).toLocaleString('en-US', {
-										timeZone: 'America/Los_Angeles',
+										timeZone: 'Europe/Lisbon',
 										month: 'short',
 										day: 'numeric',
 										hour: 'numeric',
@@ -264,14 +267,14 @@ export class MyMCP extends McpAgent<Env, Record<string, never>, Props> {
 			"get_surf_forecast",
 			"SECONDARY TOOL: Returns only basic spot conditions without forecaster notes or tides. Prefer get_complete_surf_report instead for complete information.",
 			{
-				spots: z.array(z.string()).optional().describe("Optional list of spot names, e.g., ['Waddell Creek', 'Steamer Lane']"),
+				spots: z.array(z.string()).optional().describe("Optional list of spot names, e.g., ['Carcavelos', 'Supertubos']"),
 			},
 			async ({ spots }) => {
-				const spotsToFetch = spots && spots.length > 0 ? spots : Object.keys(SANTA_CRUZ_SPOTS);
+				const spotsToFetch = spots && spots.length > 0 ? spots : Object.keys(PORTUGAL_SPOTS);
 				const results = [];
 
 				for (const spotName of spotsToFetch) {
-					const spotId = SANTA_CRUZ_SPOTS[spotName];
+					const spotId = PORTUGAL_SPOTS[spotName];
 					if (!spotId) {
 						results.push({ spot: spotName, error: "Unknown spot" });
 						continue;
@@ -321,9 +324,9 @@ export class MyMCP extends McpAgent<Env, Record<string, never>, Props> {
 				days: z.number().optional().default(3).describe("Number of days to fetch (default 3)"),
 			},
 			async ({ days }) => {
-				const steamerLaneId = "5842041f4e65fad6a7708805";
+				const carcavelosId = "5842041f4e65fad6a7708bc0";
 				try {
-					const data = await fetchSurfData(steamerLaneId, "conditions");
+					const data = await fetchSurfData(carcavelosId, "conditions");
 					const conditions = data?.data?.conditions || [];
 					const notes = conditions.slice(0, days).map((condition: any) => ({
 						date: condition.forecastDay,
@@ -340,9 +343,9 @@ export class MyMCP extends McpAgent<Env, Record<string, never>, Props> {
 
 		// Get tides tool
 		this.server.tool("get_tides", "SECONDARY TOOL: Returns only tides. Prefer get_complete_surf_report which includes this plus more.", {}, async () => {
-			const steamerLaneId = "5842041f4e65fad6a7708805";
+			const carcavelosId = "5842041f4e65fad6a7708bc0";
 			try {
-				const data = await fetchSurfData(steamerLaneId, "tides");
+				const data = await fetchSurfData(carcavelosId, "tides");
 				const tides = data?.data?.tides || [];
 				const tideLoc = data?.associated?.tideLocation || {};
 				const now = Date.now() / 1000;
@@ -350,7 +353,14 @@ export class MyMCP extends McpAgent<Env, Record<string, never>, Props> {
 					.filter((t: any) => t.timestamp > now && (t.type === "HIGH" || t.type === "LOW"))
 					.slice(0, 6)
 					.map((t: any) => ({
-						time: new Date(t.timestamp * 1000).toLocaleString(),
+						time: new Date(t.timestamp * 1000).toLocaleString('en-US', {
+							timeZone: 'Europe/Lisbon',
+							month: 'short',
+							day: 'numeric',
+							hour: 'numeric',
+							minute: '2-digit',
+							hour12: true
+						}),
 						type: t.type,
 						height: t.height,
 					}));
@@ -361,7 +371,7 @@ export class MyMCP extends McpAgent<Env, Record<string, never>, Props> {
 							type: "text",
 							text: JSON.stringify(
 								{
-									location: tideLoc.name || "Santa Cruz",
+									location: tideLoc.name || "Lisbon",
 									tides: upcomingTides,
 								},
 								null,
@@ -378,11 +388,11 @@ export class MyMCP extends McpAgent<Env, Record<string, never>, Props> {
 		// Get best spot tool
 		this.server.tool("get_best_spot", "SPECIALIZED TOOL: Ranks all spots by quality score. Use get_complete_surf_report first, then this for rankings if needed.", {}, async () => {
 			// Fetch all spots
-			const allSpots = Object.keys(SANTA_CRUZ_SPOTS);
+			const allSpots = Object.keys(PORTUGAL_SPOTS);
 			const results = [];
 
 			for (const spotName of allSpots) {
-				const spotId = SANTA_CRUZ_SPOTS[spotName];
+				const spotId = PORTUGAL_SPOTS[spotName];
 				try {
 					const [waveData, windData, ratingData] = await Promise.all([
 						fetchSurfData(spotId, "wave"),
