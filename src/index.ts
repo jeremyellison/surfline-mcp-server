@@ -251,7 +251,7 @@ const PORTUGAL_SPOTS: Record<string, string> = {
 // Helper functions
 async function fetchSurfData(spotId: string, endpoint: string) {
 	const url = `https://services.surfline.com/kbyg/spots/forecasts/${endpoint}`;
-	const params = new URLSearchParams({ spotId, days: "3" });
+	const params = new URLSearchParams({ spotId, days: "3", accesstoken: "e5279c349ec2f3423d9564117b18c03fb9615b09"});
 	const response = await fetch(`${url}?${params}`);
 	return response.json();
 }
