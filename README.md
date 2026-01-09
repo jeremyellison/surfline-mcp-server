@@ -6,7 +6,7 @@ A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that p
 
 🌊 **Comprehensive Surf Data**
 
-* Current conditions for 84 Portuguese mainland spots
+* Current conditions for (what I hope is) all Portuguese spots
 * Detailed swell breakdown (height, period, direction, power for each swell component)
 * 8-hour hourly forecasts showing how conditions evolve
 * Expert forecaster observations with AM/PM specific timing advice
