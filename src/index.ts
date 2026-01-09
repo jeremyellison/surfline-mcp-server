@@ -251,7 +251,7 @@ const PORTUGAL_SPOTS: Record<string, string> = {
 // Helper functions
 async function fetchSurfData(spotId: string, endpoint: string) {
 	const url = `https://services.surfline.com/kbyg/spots/forecasts/${endpoint}`;
-	const params = new URLSearchParams({ spotId, days: "3", accesstoken: "e5279c349ec2f3423d9564117b18c03fb9615b09"});
+	const params = new URLSearchParams({ spotId, days: "5", accesstoken: "e5279c349ec2f3423d9564117b18c03fb9615b09"});
 	const response = await fetch(`${url}?${params}`);
 	return response.json();
 }
@@ -292,7 +292,9 @@ export class MyMCP extends McpAgent<Env, Record<string, never>, Props> {
 				try {
 					const data = await fetchSurfData(carcavelosId, "conditions");
 					const conditions = data?.data?.conditions || [];
-					forecasterNotes = conditions.slice(0, 3).map((condition: any) => ({
+					forecasterNotes = conditions
+										//.slice(0, 3)
+										.map((condition: any) => ({
 						date: condition.forecastDay,
 						forecaster: condition.forecaster?.name || "Surfline",
 						headline: condition.headline || "",
@@ -327,7 +329,7 @@ export class MyMCP extends McpAgent<Env, Record<string, never>, Props> {
 					const now = Date.now() / 1000;
 					const upcomingTides = tides
 						.filter((t: any) => t.timestamp > now && (t.type === "HIGH" || t.type === "LOW"))
-						.slice(0, 6)
+						//.slice(0, 6)
 						.map((t: any) => ({
 							time: new Date(t.timestamp * 1000).toLocaleString('en-US', {
 								timeZone: 'Europe/Lisbon',
@@ -458,7 +460,7 @@ export class MyMCP extends McpAgent<Env, Record<string, never>, Props> {
 								},
 							},
 							swells,
-							hourlyForecast: hourlyForecast.slice(0, 8), // Next 8 hours
+							hourlyForecast: hourlyForecast //.slice(0, 8), // Next 8 hours
 						});
 					} catch (error) {
 						spotConditions.push({ spot: spotName, error: String(error) });
