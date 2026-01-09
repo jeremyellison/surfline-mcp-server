@@ -40,7 +40,7 @@ const PORTUGAL_SPOTS: Record<string, string> = {
   "Monte Verde": "584204204e65fad6a77099e1",
   "Praia de Santa Barbara(Areias)": "584204204e65fad6a77099d7",
   "Rabo de Peixe": "584204204e65fad6a77099dd",
-  "Santa Cruz": "584204204e65fad6a77099e4",
+  "Santa Cruz (Azores)": "584204204e65fad6a77099e4",
   "Santa Iria": "584204204e65fad6a77099de",
   "Populo": "584204204e65fad6a7709986",
   "Santa Clara": "584204204e65fad6a77099e0",
