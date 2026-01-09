@@ -183,6 +183,7 @@ const PORTUGAL_SPOTS: Record<string, string> = {
   "São Julião": "640b9cda4878ebfad81e2b72",
   "Carcavelos": "5842041f4e65fad6a7708bc0",
   "São Pedro do Estoril": "640b9d679b6fab7dac307b39",
+  "Paço de Arcos": "584204214e65fad6a7709d0c",
 
   // MADEIRA REGION - Portuguese island archipelago - warm water, consistent swells, tropical vibes
   "Madalena do Mar": "584204204e65fad6a7709b6c",
