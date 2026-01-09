@@ -402,34 +402,32 @@ export class MyMCP extends McpAgent<Env, Record<string, never>, Props> {
 						const surf = currentWave.surf || {};
 						const windCompass = currentWind.direction ? degreesToCompass(currentWind.direction) : "";
 
-						// Get next 12 hours of forecasts
+						// Get next 72 hours of forecasts
 						const hourlyForecast = [];
 						const now = Date.now() / 1000;
 						const waves = waveData?.data?.wave || [];
 						const winds = windData?.data?.wind || [];
 						const ratings = ratingData?.data?.rating || [];
 
-						for (let i = 0; i < Math.min(12, waves.length); i++) {
-							if (waves[i].timestamp > now) {
-								hourlyForecast.push({
-									time: new Date(waves[i].timestamp * 1000).toLocaleString('en-US', {
-										timeZone: 'Europe/Lisbon',
-										month: 'short',
-										day: 'numeric',
-										hour: 'numeric',
-										minute: '2-digit',
-										hour12: true
-									}),
-									surf: `${waves[i].surf?.min}-${waves[i].surf?.max}${waves[i].surf?.plus ? "+" : ""}ft`,
-									humanRelation: waves[i].surf?.humanRelation || "",
-									wind: {
-										speed: winds[i]?.speed || 0,
-										direction: winds[i]?.direction ? degreesToCompass(winds[i].direction) : "",
-										type: winds[i]?.directionType || "N/A",
-									},
-									rating: ratings[i]?.rating?.value || 0,
-								});
-							}
+						for (let i = 0; i < Math.min(72, waves.length); i++) {
+						    hourlyForecast.push({
+						        time: new Date(waves[i].timestamp * 1000).toLocaleString('en-US', {
+						            timeZone: 'Europe/Lisbon',
+						            month: 'short',
+						            day: 'numeric',
+						            hour: 'numeric',
+						            minute: '2-digit',
+						            hour12: true
+						        }),
+						        surf: `${waves[i].surf?.min}-${waves[i].surf?.max}${waves[i].surf?.plus ? "+" : ""}ft`,
+						        humanRelation: waves[i].surf?.humanRelation || "",
+						        wind: {
+						            speed: winds[i]?.speed || 0,
+						            direction: winds[i]?.direction ? degreesToCompass(winds[i].direction) : "",
+						            type: winds[i]?.directionType || "N/A",
+						        },
+						        rating: ratings[i]?.rating?.value || 0,
+						    });
 						}
 
 						// Extract swell details
