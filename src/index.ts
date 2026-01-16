@@ -249,9 +249,10 @@ const PORTUGAL_SPOTS: Record<string, string> = {
 };
 
 // Helper functions
-async function fetchSurfData(spotId: string, endpoint: string) {
+async function fetchSurfData(spotId: string | string[], endpoint: string) {
 	const url = `https://services.surfline.com/kbyg/spots/forecasts/${endpoint}`;
-	const params = new URLSearchParams({ spotId, days: "5", accesstoken: "e5279c349ec2f3423d9564117b18c03fb9615b09"});
+	const spotIdParam = Array.isArray(spotId) ? spotId.join(',') : spotId;
+	const params = new URLSearchParams({ spotId: spotIdParam, days: "5", accesstoken: "e5279c349ec2f3423d9564117b18c03fb9615b09"});
 	const response = await fetch(`${url}?${params}`);
 	return response.json();
 }
@@ -286,101 +287,128 @@ export class MyMCP extends McpAgent<Env, Record<string, never>, Props> {
 				spots: z.array(z.string()).optional().describe("Optional list of spot names, e.g., ['Carcavelos', 'Supertubos', 'Nazaré']"),
 			},
 			async ({ spots }) => {
-				// Fetch forecaster notes with AM/PM details (using Carcavelos as reference)
-				const carcavelosId = "5842041f4e65fad6a7708bc0";
-				let forecasterNotes = [];
-				try {
-					const data = await fetchSurfData(carcavelosId, "conditions");
-					const conditions = data?.data?.conditions || [];
-					forecasterNotes = conditions
-										//.slice(0, 3)
-										.map((condition: any) => ({
-						date: condition.forecastDay,
-						forecaster: condition.forecaster?.name || "Surfline",
-						headline: condition.headline || "",
-						observation: condition.observation?.replace(/<br\/?>/g, "\n") || "",
-						am: condition.am?.observation ? {
-							observation: condition.am.observation,
-							rating: condition.am.rating?.key,
-							surf: condition.am.minHeight && condition.am.maxHeight
-								? `${condition.am.minHeight}-${condition.am.maxHeight}${condition.am.plus ? "+" : ""}ft`
-								: undefined,
-							humanRelation: condition.am.humanRelation || undefined,
-						} : undefined,
-						pm: condition.pm?.observation ? {
-							observation: condition.pm.observation,
-							rating: condition.pm.rating?.key,
-							surf: condition.pm.minHeight && condition.pm.maxHeight
-								? `${condition.pm.minHeight}-${condition.pm.maxHeight}${condition.pm.plus ? "+" : ""}ft`
-								: undefined,
-							humanRelation: condition.pm.humanRelation || undefined,
-						} : undefined,
-					}));
-				} catch (error) {
-					forecasterNotes = [{ error: String(error) }];
-				}
+				// Determine which spots to fetch
+				const spotsToFetch = spots && spots.length > 0 ? spots : Object.keys(PORTUGAL_SPOTS);
 
-				// Fetch tide info
-				let tideInfo = {};
-				try {
-					const data = await fetchSurfData(carcavelosId, "tides");
-					const tides = data?.data?.tides || [];
-					const tideLoc = data?.associated?.tideLocation || {};
-					const now = Date.now() / 1000;
-					const upcomingTides = tides
-						.filter((t: any) => t.timestamp > now && (t.type === "HIGH" || t.type === "LOW"))
-						//.slice(0, 6)
-						.map((t: any) => ({
-							time: new Date(t.timestamp * 1000).toLocaleString('en-US', {
-								timeZone: 'Europe/Lisbon',
-								month: 'short',
-								day: 'numeric',
-								hour: 'numeric',
-								minute: '2-digit',
-								hour12: true
-							}),
-							type: t.type,
-							height: t.height,
-						}));
-					tideInfo = {
-						location: tideLoc.name || "Lisbon",
-						upcomingTides,
-					};
-				} catch (error) {
-					tideInfo = { error: String(error) };
-				}
-
-				// Fetch sunrise/sunset times
-				let sunlightTimes = {};
-				try {
-					const data = await fetchSurfData(carcavelosId, "weather");
-					const sunlight = data?.data?.sunlightTimes?.[0];
-					if (sunlight) {
-						// Convert to local Lisbon time string manually
-						const formatLocalTime = (timestamp: number) => {
-							const date = new Date(timestamp * 1000);
-							// Format in Lisbon timezone
-							return date.toLocaleTimeString('en-US', {
-								timeZone: 'Europe/Lisbon',
-								hour: 'numeric',
-								minute: '2-digit',
-								hour12: true
-							});
-						};
-
-						sunlightTimes = {
-							sunrise: formatLocalTime(sunlight.sunrise),
-							sunset: formatLocalTime(sunlight.sunset),
-							dawn: formatLocalTime(sunlight.dawn),
-							dusk: formatLocalTime(sunlight.dusk),
-						};
+				// Fetch forecaster notes with AM/PM details for each spot
+				const forecasterNotes = [];
+				for (const spotName of spotsToFetch) {
+					const spotId = PORTUGAL_SPOTS[spotName];
+					if (!spotId) {
+						forecasterNotes.push({ spot: spotName, error: "Unknown spot" });
+						continue;
 					}
-				} catch (error) {
-					sunlightTimes = { error: String(error) };
+
+					try {
+						const data = await fetchSurfData(spotId, "conditions");
+						const conditions = data?.data?.conditions || [];
+						const notes = conditions.map((condition: any) => ({
+							date: condition.forecastDay,
+							forecaster: condition.forecaster?.name || "Surfline",
+							headline: condition.headline || "",
+							observation: condition.observation?.replace(/<br\/?>/g, "\n") || "",
+							am: condition.am?.observation ? {
+								observation: condition.am.observation,
+								rating: condition.am.rating?.key,
+								surf: condition.am.minHeight && condition.am.maxHeight
+									? `${condition.am.minHeight}-${condition.am.maxHeight}${condition.am.plus ? "+" : ""}ft`
+									: undefined,
+								humanRelation: condition.am.humanRelation || undefined,
+							} : undefined,
+							pm: condition.pm?.observation ? {
+								observation: condition.pm.observation,
+								rating: condition.pm.rating?.key,
+								surf: condition.pm.minHeight && condition.pm.maxHeight
+									? `${condition.pm.minHeight}-${condition.pm.maxHeight}${condition.pm.plus ? "+" : ""}ft`
+									: undefined,
+								humanRelation: condition.pm.humanRelation || undefined,
+							} : undefined,
+						}));
+						forecasterNotes.push({ spot: spotName, notes });
+					} catch (error) {
+						forecasterNotes.push({ spot: spotName, error: String(error) });
+					}
+				}
+
+				// Fetch tide info for each spot
+				const tideInfo = [];
+				for (const spotName of spotsToFetch) {
+					const spotId = PORTUGAL_SPOTS[spotName];
+					if (!spotId) {
+						tideInfo.push({ spot: spotName, error: "Unknown spot" });
+						continue;
+					}
+
+					try {
+						const data = await fetchSurfData(spotId, "tides");
+						const tides = data?.data?.tides || [];
+						const tideLoc = data?.associated?.tideLocation || {};
+						const now = Date.now() / 1000;
+						const upcomingTides = tides
+							.filter((t: any) => t.timestamp > now && (t.type === "HIGH" || t.type === "LOW"))
+							.map((t: any) => ({
+								time: new Date(t.timestamp * 1000).toLocaleString('en-US', {
+									timeZone: 'Europe/Lisbon',
+									month: 'short',
+									day: 'numeric',
+									hour: 'numeric',
+									minute: '2-digit',
+									hour12: true
+								}),
+								type: t.type,
+								height: t.height,
+							}));
+						tideInfo.push({
+							spot: spotName,
+							location: tideLoc.name || "Unknown",
+							upcomingTides,
+						});
+					} catch (error) {
+						tideInfo.push({ spot: spotName, error: String(error) });
+					}
+				}
+
+				// Fetch sunrise/sunset times for each spot
+				const sunlightTimes = [];
+				for (const spotName of spotsToFetch) {
+					const spotId = PORTUGAL_SPOTS[spotName];
+					if (!spotId) {
+						sunlightTimes.push({ spot: spotName, error: "Unknown spot" });
+						continue;
+					}
+
+					try {
+						const data = await fetchSurfData(spotId, "weather");
+						const sunlight = data?.data?.sunlightTimes?.[0];
+						if (sunlight) {
+							// Convert to local Lisbon time string manually
+							const formatLocalTime = (timestamp: number) => {
+								const date = new Date(timestamp * 1000);
+								// Format in Lisbon timezone
+								return date.toLocaleTimeString('en-US', {
+									timeZone: 'Europe/Lisbon',
+									hour: 'numeric',
+									minute: '2-digit',
+									hour12: true
+								});
+							};
+
+							sunlightTimes.push({
+								spot: spotName,
+								sunrise: formatLocalTime(sunlight.sunrise),
+								sunset: formatLocalTime(sunlight.sunset),
+								dawn: formatLocalTime(sunlight.dawn),
+								dusk: formatLocalTime(sunlight.dusk),
+							});
+						} else {
+							sunlightTimes.push({ spot: spotName, error: "No sunlight data available" });
+						}
+					} catch (error) {
+						sunlightTimes.push({ spot: spotName, error: String(error) });
+					}
 				}
 
 				// Fetch spot conditions with FULL details
-				const spotsToFetch = spots && spots.length > 0 ? spots : Object.keys(PORTUGAL_SPOTS);
 				const spotConditions = [];
 
 				for (const spotName of spotsToFetch) {
@@ -548,67 +576,87 @@ export class MyMCP extends McpAgent<Env, Record<string, never>, Props> {
 			"SECONDARY TOOL: Returns only forecaster notes. Prefer get_complete_surf_report which includes this plus more.",
 			{
 				days: z.number().optional().default(3).describe("Number of days to fetch (default 3)"),
+				spots: z.array(z.string()).min(1).describe("List of spot names, e.g., ['Carcavelos', 'Supertubos', 'Nazaré']"),
 			},
-			async ({ days }) => {
-				const carcavelosId = "5842041f4e65fad6a7708bc0";
-				try {
-					const data = await fetchSurfData(carcavelosId, "conditions");
-					const conditions = data?.data?.conditions || [];
-					const notes = conditions.slice(0, days).map((condition: any) => ({
-						date: condition.forecastDay,
-						forecaster: condition.forecaster?.name || "Surfline",
-						headline: condition.headline || "",
-						observation: condition.observation?.replace(/<br\/?>/g, "\n") || "",
-					}));
-					return { content: [{ type: "text", text: JSON.stringify(notes, null, 2) }] };
-				} catch (error) {
-					return { content: [{ type: "text", text: `Error: ${error}` }] };
+			async ({ days, spots }) => {
+				const results = [];
+				for (const spotName of spots) {
+					const spotId = PORTUGAL_SPOTS[spotName];
+					if (!spotId) {
+						results.push({ spot: spotName, error: "Unknown spot" });
+						continue;
+					}
+
+					try {
+						const data = await fetchSurfData(spotId, "conditions");
+						const conditions = data?.data?.conditions || [];
+						const notes = conditions.slice(0, days).map((condition: any) => ({
+							date: condition.forecastDay,
+							forecaster: condition.forecaster?.name || "Surfline",
+							headline: condition.headline || "",
+							observation: condition.observation?.replace(/<br\/?>/g, "\n") || "",
+						}));
+						results.push({ spot: spotName, notes });
+					} catch (error) {
+						results.push({ spot: spotName, error: String(error) });
+					}
 				}
+
+				return { content: [{ type: "text", text: JSON.stringify(results, null, 2) }] };
 			},
 		);
 
 		// Get tides tool
-		this.server.tool("get_tides", "SECONDARY TOOL: Returns only tides. Prefer get_complete_surf_report which includes this plus more.", {}, async () => {
-			const carcavelosId = "5842041f4e65fad6a7708bc0";
-			try {
-				const data = await fetchSurfData(carcavelosId, "tides");
-				const tides = data?.data?.tides || [];
-				const tideLoc = data?.associated?.tideLocation || {};
-				const now = Date.now() / 1000;
-				const upcomingTides = tides
-					.filter((t: any) => t.timestamp > now && (t.type === "HIGH" || t.type === "LOW"))
-					.slice(0, 6)
-					.map((t: any) => ({
-						time: new Date(t.timestamp * 1000).toLocaleString('en-US', {
-							timeZone: 'Europe/Lisbon',
-							month: 'short',
-							day: 'numeric',
-							hour: 'numeric',
-							minute: '2-digit',
-							hour12: true
-						}),
-						type: t.type,
-						height: t.height,
-					}));
+		this.server.tool("get_tides", "SECONDARY TOOL: Returns only tides. Prefer get_complete_surf_report which includes this plus more.", {
+			spots: z.array(z.string()).min(1).describe("List of spot names, e.g., ['Carcavelos', 'Supertubos', 'Nazaré']"),
+		}, async ({ spots }) => {
+			const results = [];
+			for (const spotName of spots) {
+				const spotId = PORTUGAL_SPOTS[spotName];
+				if (!spotId) {
+					results.push({ spot: spotName, error: "Unknown spot" });
+					continue;
+				}
 
-				return {
-					content: [
-						{
-							type: "text",
-							text: JSON.stringify(
-								{
-									location: tideLoc.name || "Lisbon",
-									tides: upcomingTides,
-								},
-								null,
-								2,
-							),
-						},
-					],
-				};
-			} catch (error) {
-				return { content: [{ type: "text", text: `Error: ${error}` }] };
+				try {
+					const data = await fetchSurfData(spotId, "tides");
+					const tides = data?.data?.tides || [];
+					const tideLoc = data?.associated?.tideLocation || {};
+					const now = Date.now() / 1000;
+					const upcomingTides = tides
+						.filter((t: any) => t.timestamp > now && (t.type === "HIGH" || t.type === "LOW"))
+						.slice(0, 6)
+						.map((t: any) => ({
+							time: new Date(t.timestamp * 1000).toLocaleString('en-US', {
+								timeZone: 'Europe/Lisbon',
+								month: 'short',
+								day: 'numeric',
+								hour: 'numeric',
+								minute: '2-digit',
+								hour12: true
+							}),
+							type: t.type,
+							height: t.height,
+						}));
+
+					results.push({
+						spot: spotName,
+						location: tideLoc.name || "Unknown",
+						tides: upcomingTides,
+					});
+				} catch (error) {
+					results.push({ spot: spotName, error: String(error) });
+				}
 			}
+
+			return {
+				content: [
+					{
+						type: "text",
+						text: JSON.stringify(results, null, 2),
+					},
+				],
+			};
 		});
 
 		// Get best spot tool
@@ -665,6 +713,19 @@ export class MyMCP extends McpAgent<Env, Record<string, never>, Props> {
 
 			const ranked = results.sort((a, b) => b.score - a.score).slice(0, 5);
 			return { content: [{ type: "text", text: JSON.stringify(ranked, null, 2) }] };
+		});
+
+		// List available spots tool
+		this.server.tool("list_available_spots", "Returns a list of all available surf spot names. Use this to discover which spots are available before querying other tools.", {}, async () => {
+			const spotNames = Object.keys(PORTUGAL_SPOTS).sort();
+			return {
+				content: [
+					{
+						type: "text",
+						text: JSON.stringify(spotNames, null, 2),
+					},
+				],
+			};
 		});
 	}
 }
