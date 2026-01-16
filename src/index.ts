@@ -576,13 +576,9 @@ export class MyMCP extends McpAgent<Env, Record<string, never>, Props> {
 			"SECONDARY TOOL: Returns only forecaster notes. Prefer get_complete_surf_report which includes this plus more.",
 			{
 				days: z.number().optional().default(3).describe("Number of days to fetch (default 3)"),
-				spots: z.array(z.string()).optional().describe("List of spot names, e.g., ['Carcavelos', 'Supertubos', 'Nazaré']. Required - at least one spot must be specified."),
+				spots: z.array(z.string()).min(1).describe("List of spot names, e.g., ['Carcavelos', 'Supertubos', 'Nazaré']"),
 			},
 			async ({ days, spots }) => {
-				if (!spots || spots.length === 0) {
-					return { content: [{ type: "text", text: "Error: No spots specified. Please provide at least one spot name." }] };
-				}
-
 				const results = [];
 				for (const spotName of spots) {
 					const spotId = PORTUGAL_SPOTS[spotName];
@@ -612,12 +608,8 @@ export class MyMCP extends McpAgent<Env, Record<string, never>, Props> {
 
 		// Get tides tool
 		this.server.tool("get_tides", "SECONDARY TOOL: Returns only tides. Prefer get_complete_surf_report which includes this plus more.", {
-			spots: z.array(z.string()).optional().describe("List of spot names, e.g., ['Carcavelos', 'Supertubos', 'Nazaré']. Required - at least one spot must be specified."),
+			spots: z.array(z.string()).min(1).describe("List of spot names, e.g., ['Carcavelos', 'Supertubos', 'Nazaré']"),
 		}, async ({ spots }) => {
-			if (!spots || spots.length === 0) {
-				return { content: [{ type: "text", text: "Error: No spots specified. Please provide at least one spot name." }] };
-			}
-
 			const results = [];
 			for (const spotName of spots) {
 				const spotId = PORTUGAL_SPOTS[spotName];
@@ -721,6 +713,19 @@ export class MyMCP extends McpAgent<Env, Record<string, never>, Props> {
 
 			const ranked = results.sort((a, b) => b.score - a.score).slice(0, 5);
 			return { content: [{ type: "text", text: JSON.stringify(ranked, null, 2) }] };
+		});
+
+		// List available spots tool
+		this.server.tool("list_available_spots", "Returns a list of all available surf spot names. Use this to discover which spots are available before querying other tools.", {}, async () => {
+			const spotNames = Object.keys(PORTUGAL_SPOTS).sort();
+			return {
+				content: [
+					{
+						type: "text",
+						text: JSON.stringify(spotNames, null, 2),
+					},
+				],
+			};
 		});
 	}
 }
